@@ -1,0 +1,53 @@
+\BLOCK{ raw }
+%% =====================================================================================
+%%  COVER-LETTER / E-MAIL ATTACHMENT TEMPLATE  (LaTeX + Jinja) - same syntax as the CV template.
+%%  Variables: babel, L.<label>, sender_name, sender_block (raw), recipient_block (raw), place_date,
+%%             subject, salutation, paragraphs[], closing, signature_block (raw)
+%% =====================================================================================
+\BLOCK{ endraw }
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[a4paper,top=2.1cm,bottom=2.0cm,left=2.4cm,right=2.4cm]{geometry}
+\usepackage[\VAR{babel|raw}]{babel}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage[hidelinks]{hyperref}
+
+\definecolor{accent}{HTML}{1F4E79}
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.8em}
+\raggedbottom
+
+\begin{document}
+
+{\Large\bfseries\color{accent} \VAR{sender_name}}\par\vspace{-0.5em}
+{\small \VAR{sender_block|raw}}\par
+
+\vspace{0.6em}
+\hfill \VAR{place_date}\par
+
+\BLOCK{ if recipient_block }
+\vspace{0.2em}
+\VAR{recipient_block|raw}\par
+\BLOCK{ endif }
+
+\vspace{0.4em}
+\BLOCK{ if subject }
+\textbf{\VAR{L.subject}~\VAR{subject}}\par
+\BLOCK{ endif }
+
+\VAR{salutation}
+
+\BLOCK{ for p in paragraphs }
+\VAR{p}
+
+\BLOCK{ endfor }
+\VAR{closing}
+
+\vspace{1.2em}
+\VAR{signature_block|raw}
+
+\end{document}

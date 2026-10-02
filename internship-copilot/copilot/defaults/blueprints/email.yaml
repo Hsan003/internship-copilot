@@ -1,0 +1,75 @@
+# ============================================================================
+#  SPONTANEOUS E-MAIL BLUEPRINT  -  short first-contact e-mail to a named person.
+#  Same format as the letter blueprint (see letter.yaml for the list of {placeholders}).
+#  Extra placeholders here: {role_focus} (what you target, e.g. "DevOps / SRE"), {programme_short}, {links_line}.
+#  In `salutations` only, the recipient's name: {full_name} {first_name} {last_name}
+#
+#  Keep it SHORT: 110-150 words total is the sweet spot for a cold e-mail.
+# ============================================================================
+name: Spontaneous e-mail (short, 3 blocks)
+kind: email
+
+tone:
+  en: "Short, polite, direct and human. Sounds like a student who did a little homework, not like a template."
+  fr: "Court, poli, direct et humain. On sent un étudiant qui s'est renseigné, pas un modèle de lettre. Vouvoiement."
+
+avoid:
+  en: ["I am writing to", "passionate", "dynamic", "team player", "cutting-edge", "perfect fit", "fast learner"]
+  fr: ["je me permets de", "passionné", "dynamique", "esprit d'équipe", "à la pointe", "candidat idéal", "motivé et rigoureux"]
+
+subject:
+  en: "Spontaneous application – {internship_label}, {role_focus} ({start_month_year}, {duration_text})"
+  fr: "Candidature spontanée – {internship_label}, {role_focus} ({start_month_year}, {duration_text})"
+subject_no_role:
+  en: "Spontaneous application – {internship_label} ({start_month_year}, {duration_text})"
+  fr: "Candidature spontanée – {internship_label} ({start_month_year}, {duration_text})"
+
+salutations:
+  en:
+    default: "Hello,"
+    named_neutral: "Hello {full_name},"
+    named_ms: "Dear Ms. {last_name},"
+    named_mr: "Dear Mr. {last_name},"
+    first_name: "Hello {first_name},"
+  fr:
+    default: "Bonjour,"
+    named_neutral: "Bonjour {full_name},"
+    named_ms: "Bonjour Madame {last_name},"
+    named_mr: "Bonjour Monsieur {last_name},"
+    first_name: "Bonjour {first_name},"
+
+closing:
+  en: "Best regards,"
+  fr: "Cordialement,"
+
+signature_lines: ["{name}", "{programme_short}", "{phone} · {email}", "{links_line}"]
+
+paragraphs:
+  - id: hook
+    kind: generated
+    label: {en: Why you / why them, fr: Pourquoi vous / pourquoi eux}
+    max_words: 50
+    goal:
+      en: "In one or two sentences, say why you are writing to THIS company. Build on the candidate's NOTE if there is one, else on one concrete COMPANY FACT; if neither exists, do NOT describe what the company does: just name the domain you target. Add who you are in a few words (final-year student, field)."
+      fr: "En une ou deux phrases, dites pourquoi vous écrivez à CETTE entreprise (appuyez-vous d'abord sur la NOTE du candidat, sinon sur un FAIT concret sur l'entreprise ; à défaut, ne décrivez PAS ce que fait l'entreprise : nommez seulement le domaine visé). Ajoutez qui vous êtes en quelques mots (dernière année d'école d'ingénieurs, spécialité)."
+    example:
+      en: "I have been following Nimbus Logistics' work on real-time route optimisation, and it is exactly the kind of backend problem I want to work on. I am in the final year of a software engineering degree."
+      fr: "Je suis avec intérêt le travail de Nimbus Logistics sur l'optimisation de tournées en temps réel : c'est exactement le type de problème backend sur lequel je veux travailler. Je suis en dernière année d'école d'ingénieurs en informatique."
+
+  - id: value
+    kind: generated
+    label: {en: What you bring, fr: Ce que vous apportez}
+    max_words: 65
+    goal:
+      en: "Give one or two concrete things you built or did (from the CANDIDATE FACTS only) that are relevant to the domain targeted, with the tools used and the result. No generic claims."
+      fr: "Donnez une ou deux réalisations concrètes (uniquement issues des FAITS SUR LE CANDIDAT) pertinentes pour le domaine visé, avec les outils utilisés et le résultat. Pas d'affirmations générales."
+    example:
+      en: "Recently I built a CI/CD pipeline with GitHub Actions and Docker that cut deployment time from 20 to 5 minutes, and I set up Prometheus and Grafana dashboards to monitor it."
+      fr: "J'ai récemment construit un pipeline CI/CD avec GitHub Actions et Docker qui a fait passer le temps de déploiement de 20 à 5 minutes, et mis en place des tableaux de bord Prometheus et Grafana pour le surveiller."
+
+  - id: ask
+    kind: fixed
+    label: {en: Availability & request, fr: Disponibilité et demande}
+    text:
+      en: "I am available for {internship_label_a} of {duration_text} starting {start_month_year}. Would you have 15 minutes for a quick call, or could you point me to the right person in your team? My CV is attached."
+      fr: "Je suis disponible pour {internship_label_a} de {duration_text} à partir de {start_month_year}. Auriez-vous quinze minutes pour échanger, ou pourriez-vous m'orienter vers la bonne personne dans votre équipe ? Mon CV est joint à ce message."

@@ -1,0 +1,21 @@
+Software Engineering Intern – Platform & Reliability (m/f/d)
+Nimbus Logistics · Berlin, Germany · Internship · 5 months · Start: March 2027 · Hybrid
+
+About Nimbus Logistics
+Nimbus Logistics builds a route-optimisation platform used by more than 200 retailers across Europe. Our services compute millions of delivery routes every day and have to stay fast and reliable.
+
+What you will do
+You will join the Platform team and work on:
+- Building internal tooling in Python and Go to automate deployments to Kubernetes
+- Extending our monitoring stack (Prometheus, Grafana, OpenTelemetry) and writing alerts and runbooks
+- Improving our CI/CD pipelines on GitHub Actions
+- Taking part in the on-call rotation as an observer and in post-incident reviews
+
+What we are looking for
+- Final-year student in computer science or a related field
+- Good knowledge of Linux, Docker and one scripting language
+- Experience with Terraform or any cloud provider (AWS) is a plus
+- Fluent English; German is a nice-to-have
+
+Practical information
+Duration: 4 to 6 months, starting between February and March 2027. Paid internship.

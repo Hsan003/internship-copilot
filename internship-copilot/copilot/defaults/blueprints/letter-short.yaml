@@ -1,0 +1,76 @@
+# ============================================================================
+#  FORM: SHORT & DIRECT - two written paragraphs + your availability + a one-line closing.
+#  Good for postings that ask for a brief motivation, or when the recruiter reads many letters.
+#  Same format and placeholders as letter.yaml (see the comments there).
+# ============================================================================
+name: Short & direct (motivation, fit, availability)
+kind: letter
+
+tone:
+  en: "Professional, warm and direct. Short sentences. Concrete facts rather than adjectives. First person. No clichés."
+  fr: "Professionnel, chaleureux et direct. Phrases courtes. Des faits concrets plutôt que des adjectifs. Première personne, vouvoiement. Pas de formules toutes faites."
+
+avoid:
+  en: ["I am writing to apply", "passionate", "dynamic", "team player", "cutting-edge", "perfect fit", "hard-working", "fast learner"]
+  fr: ["je me permets de", "passionné", "dynamique", "esprit d'équipe", "à la pointe", "candidat idéal", "motivé et rigoureux", "rapidement opérationnel"]
+
+subject:
+  en: "Application – {internship_label}: {role_title} ({start_month_year}, {duration_text})"
+  fr: "Candidature – {internship_label} : {role_title} ({start_month_year}, {duration_text})"
+
+salutations:
+  en:
+    default: "Dear Hiring Team,"
+    named_neutral: "Dear {full_name},"
+    named_ms: "Dear Ms. {last_name},"
+    named_mr: "Dear Mr. {last_name},"
+    first_name: "Dear {first_name},"
+  fr:
+    default: "Madame, Monsieur,"
+    named_neutral: "Bonjour {full_name},"
+    named_ms: "Madame {last_name},"
+    named_mr: "Monsieur {last_name},"
+    first_name: "Bonjour {first_name},"
+
+closing:
+  en: "Kind regards,"
+  fr: "Cordialement,"
+
+signature_lines: ["{name}"]
+
+paragraphs:
+  - id: motivation
+    kind: generated
+    label: {en: Motivation, fr: Motivation}
+    max_words: 75
+    goal:
+      en: "In two or three sentences: say why THIS role at THIS company interests you (use the job's mission, a company fact or the candidate's note) and who you are (final-year student, field). Do not mention dates or duration."
+      fr: "En deux ou trois phrases : dites pourquoi CE poste dans CETTE entreprise vous intéresse (mission de l'offre, fait sur l'entreprise ou note du candidat) et qui vous êtes (dernière année d'école d'ingénieurs, spécialité). Ne mentionnez ni dates ni durée."
+    example:
+      en: "Your platform team's work on keeping a routing service fast and observable is exactly the engineering I want to learn from. I am in the final year of a software engineering degree, with a focus on backend and infrastructure."
+      fr: "Le travail de votre équipe plateforme pour garder un service de routage rapide et observable correspond exactement à l'ingénierie dont je veux apprendre. Je suis en dernière année d'école d'ingénieurs en informatique, avec une dominante backend et infrastructure."
+
+  - id: fit
+    kind: generated
+    label: {en: Why me, fr: Pourquoi moi}
+    max_words: 90
+    goal:
+      en: "Show you can contribute quickly: pick the single most relevant item from the CANDIDATE FACTS and say what you built or did, with which tools and with what result, then link it to one requirement of the job. Mention only tools that appear in the CANDIDATE FACTS. Do not repeat the previous paragraph."
+      fr: "Montrez que vous pouvez contribuer rapidement : choisissez l'élément le plus pertinent des FAITS SUR LE CANDIDAT et dites ce que vous avez construit ou fait, avec quels outils et quel résultat, puis reliez-le à une exigence de l'offre. Ne citez que des outils présents dans les FAITS SUR LE CANDIDAT. Ne répétez pas le paragraphe précédent."
+    example:
+      en: "For a team project I automated the deployment of three services with a CI pipeline, which cut release time from half a day to twenty minutes, and I added basic alerting so failures were visible. That is the kind of work your role describes."
+      fr: "Pour un projet d'équipe, j'ai automatisé le déploiement de trois services avec un pipeline CI, ce qui a ramené le temps de livraison d'une demi-journée à vingt minutes, et j'ai ajouté une alerte simple pour rendre les échecs visibles. C'est le type de travail que décrit votre poste."
+
+  - id: logistics
+    kind: fixed
+    label: {en: Availability, fr: Disponibilité}
+    text:
+      en: "I am available for {internship_label_a} of {duration_text}, starting {start_month_year}, as part of {programme}. {availability_note}"
+      fr: "Je suis disponible pour {internship_label_a} de {duration_text}, à compter de {start_month_year}, dans le cadre de {programme}. {availability_note}"
+
+  - id: close
+    kind: fixed
+    label: {en: Closing line, fr: Phrase de conclusion}
+    text:
+      en: "I would be glad to discuss my application with you. Thank you for your time."
+      fr: "Je serais ravi d'échanger avec vous au sujet de ma candidature. Je vous remercie de votre attention."

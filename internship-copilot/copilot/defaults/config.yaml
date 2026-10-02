@@ -1,0 +1,32 @@
+# ============================================================================
+#  Settings (everything is optional: defaults are shown here)
+# ============================================================================
+
+llm:
+  backend: ollama             # ollama = your local model | fake = demo mode (no model, templated text)
+  base_url: http://localhost:11434
+  model: gemma4:e4b           # any model you have pulled:  ollama pull gemma4:e4b   (see README for sizes)
+  num_ctx: 6144               # context window sent to Ollama (job text + your facts must fit; lower = less memory)
+  temperature_extract: 0.1    # analysis / extraction steps
+  temperature_write: 0.6      # writing steps (raise for more variety, lower for more literal)
+  keep_alive: 30m             # keep the model in memory between requests
+  timeout_s: 900              # max seconds to wait for one answer (CPU-only machines can be slow)
+  think: "off"                # off = never use "thinking" mode (much faster) | model-default
+
+latex:
+  engine: auto                # auto | pdflatex | xelatex | lualatex | tectonic
+  timeout_s: 120
+  max_cv_pages: 1             # the CV is trimmed (least relevant bullets first) until it fits
+
+cv:
+  max_projects: 3             # projects shown on a tailored CV
+  max_bullets_per_item: 3
+  max_experience_items: 4
+
+fetch:
+  timeout_s: 20
+  use_browser: auto           # auto | never | always  (headless Chromium; needs `pip install playwright`)
+  max_job_chars: 9000
+
+tracker:
+  follow_up_days: 10          # suggest a follow-up this many days after "sent"

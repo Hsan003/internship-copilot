@@ -1,0 +1,143 @@
+# ============================================================================
+#  MASTER PROFILE - the single source of truth about YOU.
+#  Everything the app writes (letters, e-mails, tailored CVs) may only use facts from this file.
+#  The more concrete it is (tools, numbers, outcomes), the better the letters.
+#
+#  >>> This is SAMPLE DATA. Replace it with your own, then delete the line `example: true`. <<<
+#
+#  Text fields can be a plain string, or per-language:   text: {en: "...", fr: "..."}
+#  Ids are optional (they are generated); keep them if you reference items elsewhere.
+#  `tags` / `stack` help matching; the app also detects technologies in your text automatically.
+# ============================================================================
+example: true
+
+identity:
+  name: Alex Morgan
+  title:
+    en: Software engineering student
+    fr: Étudiant ingénieur en informatique
+  email: alex.morgan@example.com
+  phone: "+00 0 00 00 00 00"
+  location: City, Country
+  links:
+    linkedin: https://www.linkedin.com/in/alex-morgan-example
+    github: https://github.com/alex-morgan-example
+  gender: ""            # optional "f" or "m": only used to agree French adjectives when needed
+
+availability:
+  start_date: 2027-02-01
+  start_flex_days: 45   # postings starting within +/- this many days count as compatible
+  min_months: 4
+  max_months: 6
+  target_countries: [France, Germany]
+  internship_label:     # wording used in subjects / letters (adapt to your programme)
+    en: end-of-studies internship
+    fr: stage de fin d'études
+  programme:            # completes the sentence "... as part of {programme}"
+    en: my final year of the engineering degree at Example School of Engineering
+    fr: ma dernière année du cycle ingénieur à Example School of Engineering
+  note:                 # optional extra logistics sentence (internship agreement, mobility, ...)
+    en: My school will sign the internship agreement.
+    fr: Mon école établira la convention de stage.
+
+education:
+  - school: Example School of Engineering
+    degree:
+      en: Engineering degree (MSc level), Software Engineering
+      fr: Diplôme d'ingénieur (bac+5), Génie logiciel
+    period: 2022 – 2027
+    location: City, Country
+    details:
+      - "Coursework: distributed systems, cloud computing, machine learning, databases, networks"
+      - "Top 10% of the class (2023, 2024)"
+
+experience:
+  - org: Acme Tech
+    role:
+      en: Software engineering intern
+      fr: Stagiaire ingénieur logiciel
+    period: Jun – Aug 2025
+    location: City, Country
+    tags: [python, docker, ci/cd]
+    bullets:
+      - text:
+          en: "Containerised 4 legacy services with Docker and wrote GitHub Actions pipelines; build time dropped from 14 to 6 minutes."
+          fr: "Conteneurisation de 4 services legacy avec Docker et écriture de pipelines GitHub Actions ; le temps de build est passé de 14 à 6 minutes."
+      - text:
+          en: "Added structured logging and Grafana dashboards to a Python/Flask API used by 300 internal users."
+          fr: "Ajout de logs structurés et de tableaux de bord Grafana sur une API Python/Flask utilisée par 300 utilisateurs internes."
+      - text:
+          en: "Wrote 40 pytest tests around the billing module, catching two regressions before release."
+          fr: "Écriture de 40 tests pytest autour du module de facturation, qui ont permis d'éviter deux régressions avant la mise en production."
+
+projects:
+  - name: Homelab Kubernetes platform
+    tagline:
+      en: Self-hosted GitOps platform for personal services
+      fr: Plateforme GitOps auto-hébergée pour mes services personnels
+    stack: [Kubernetes, Terraform, Ansible, Argo CD, Prometheus, Grafana]
+    period: 2024 – 2025
+    link: https://github.com/alex-morgan-example/homelab
+    bullets:
+      - text:
+          en: "Provisioned a 3-node k3s cluster with Terraform and Ansible, rebuildable from scratch with one command."
+          fr: "Provisionnement d'un cluster k3s à 3 nœuds avec Terraform et Ansible, reconstructible de zéro en une commande."
+      - text:
+          en: "Set up GitOps delivery with Argo CD: every merge to main deploys automatically, with one-click rollback."
+          fr: "Mise en place d'un déploiement GitOps avec Argo CD : chaque merge sur main est déployé automatiquement, avec retour arrière en un clic."
+      - text:
+          en: "Built Prometheus and Grafana dashboards plus alert rules (saturation, error rate) and wrote runbooks for 5 incidents."
+          fr: "Création de tableaux de bord Prometheus et Grafana et de règles d'alerte (saturation, taux d'erreur), et rédaction de runbooks pour 5 incidents."
+
+  - name: Course-assistant RAG chatbot
+    tagline:
+      en: Local question-answering over course material
+      fr: Assistant local de questions-réponses sur des supports de cours
+    stack: [Python, FastAPI, LangChain, pgvector, Ollama]
+    period: 2025
+    link: https://github.com/alex-morgan-example/course-rag
+    bullets:
+      - text:
+          en: "Indexed 1,200 pages of course material into pgvector and answered questions with source citations (retrieval-augmented generation)."
+          fr: "Indexation de 1 200 pages de cours dans pgvector et réponses aux questions avec citation des sources (génération augmentée par récupération)."
+      - text:
+          en: "Ran the LLM locally with Ollama and compared 3 models on 60 student questions to choose the best trade-off between quality and speed."
+          fr: "Exécution du LLM en local avec Ollama et comparaison de 3 modèles sur 60 questions d'étudiants pour choisir le meilleur compromis qualité/vitesse."
+
+  - name: Task-scheduler microservices
+    tagline:
+      en: Event-driven job scheduling service (team project, 4 people)
+      fr: Service de planification de tâches événementiel (projet d'équipe, 4 personnes)
+    stack: [Java, Spring Boot, PostgreSQL, Kafka, Docker]
+    period: 2024
+    bullets:
+      - text:
+          en: "Designed the REST API and the Kafka event flow between 3 Spring Boot services backed by PostgreSQL."
+          fr: "Conception de l'API REST et du flux d'événements Kafka entre 3 services Spring Boot adossés à PostgreSQL."
+      - text:
+          en: "Load-tested the service to 800 requests per second and removed a database bottleneck by adding an index and a cache."
+          fr: "Tests de charge jusqu'à 800 requêtes par seconde et suppression d'un goulot d'étranglement base de données grâce à un index et un cache."
+
+skills:
+  - category: {en: Languages, fr: Langages}
+    items: [Python, Java, Go, SQL, Bash, TypeScript]
+  - category: {en: Cloud & DevOps, fr: Cloud & DevOps}
+    items: [Docker, Kubernetes, Terraform, Ansible, GitHub Actions, Argo CD, Linux]
+  - category: {en: Observability, fr: Observabilité}
+    items: [Prometheus, Grafana]
+  - category: {en: Backend & data, fr: Backend & données}
+    items: [FastAPI, Flask, Spring Boot, PostgreSQL, Kafka, REST APIs]
+  - category: {en: AI / ML, fr: IA / ML}
+    items: [PyTorch, scikit-learn, LangChain, Ollama, pgvector]
+
+languages:
+  - {name: {en: English, fr: Anglais}, level: {en: "Fluent (C1)", fr: "Courant (C1)"}}
+  - {name: {en: French, fr: Français}, level: {en: "Fluent (C1)", fr: "Courant (C1)"}}
+  - {name: {en: German, fr: Allemand}, level: {en: "Beginner (A2)", fr: "Débutant (A2)"}}
+
+certifications:
+  - "HashiCorp Certified: Terraform Associate (2025)"
+
+interests:
+  - Open source
+  - Chess

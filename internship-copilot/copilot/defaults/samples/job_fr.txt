@@ -1,0 +1,21 @@
+Stage de fin d'études – Ingénieur DevOps / SRE (H/F)
+Nimbus Logistics · Paris (75) · Stage · 6 mois · Début février 2027 · Télétravail partiel (2 jours par semaine)
+
+À propos de Nimbus Logistics
+Nimbus Logistics édite une plateforme d'optimisation de tournées de livraison utilisée par plus de 200 retailers en Europe. Nos équipes construisent des services qui calculent chaque jour des millions de trajets et doivent rester rapides et fiables.
+
+Vos missions
+Rattaché(e) à l'équipe Plateforme, vous participez à la fiabilité et à l'industrialisation de nos services :
+- Industrialiser nos déploiements Kubernetes avec Terraform et Argo CD (GitOps)
+- Améliorer l'observabilité de la plateforme : métriques Prometheus, tableaux de bord Grafana, alertes et runbooks
+- Automatiser et fiabiliser nos pipelines CI/CD sous GitLab CI
+- Participer à la gestion des incidents et aux post-mortems
+
+Profil recherché
+- Étudiant(e) en dernière année d'école d'ingénieurs ou de master en informatique
+- Bases solides en Linux, Docker et scripting (Python ou Go)
+- Une première expérience du cloud (AWS) est un plus
+- Anglais courant, esprit d'équipe, goût pour l'automatisation
+
+Informations pratiques
+Durée : 6 mois, à partir de février 2027. Convention de stage obligatoire. Gratification légale + 50 % du titre de transport + tickets restaurant.

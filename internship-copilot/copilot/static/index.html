@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Internship Copilot</title>
+<link rel="stylesheet" href="/static/app.css?v=__VERSION__">
+</head>
+<body>
+<div id="demo-banner" class="banner demo" hidden>
+  <strong>Demo mode</strong> – no AI model is used: paragraphs are templated placeholders so you can try the interface.
+  Real letters need Ollama (see the <a href="#" data-goto="setup">Setup</a> tab).
+</div>
+
+<header class="top">
+  <div class="brand"><span class="logo" aria-hidden="true">✉</span><span>Internship Copilot</span><small>v__VERSION__</small></div>
+  <nav id="tabs" aria-label="Sections">
+    <button data-tab="new" class="active">New application</button>
+    <button data-tab="spont">Spontaneous</button>
+    <button data-tab="tracker">Tracker <span id="due-badge" class="badge" hidden></span></button>
+    <button data-tab="profile">Profile &amp; templates</button>
+    <button data-tab="setup">Setup</button>
+  </nav>
+  <div id="pills" class="pills" aria-live="polite"></div>
+</header>
+
+<main>
+  <div id="global-warnings"></div>
+
+  <!-- ====================================================== NEW APPLICATION -->
+  <section id="tab-new" class="tab active">
+    <div class="card">
+      <h2><span class="step">1</span> The job posting</h2>
+      <form id="fetch-form" class="row">
+        <input id="job-url" type="url" placeholder="Paste the link of the job posting (LinkedIn, WelcomeToTheJungle, Indeed, company site…)" autocomplete="off">
+        <button class="primary" id="btn-fetch" type="submit">Fetch</button>
+      </form>
+      <div class="row tight muted small">
+        <button type="button" class="link" id="btn-toggle-paste">Paste the text instead</button> ·
+        <button type="button" class="link" id="btn-sample-fr">Load a sample posting (FR)</button> ·
+        <button type="button" class="link" id="btn-sample-en">(EN)</button>
+      </div>
+      <div id="fetch-error" class="notice error" hidden></div>
+      <div id="paste-box" hidden>
+        <p class="muted small">Open the posting in your browser, select the description (or the whole page) and paste it here. This always works, even on sites that block automatic reading.</p>
+        <div class="grid2">
+          <label>Job title (optional)<input id="paste-title" type="text"></label>
+          <label>Company (optional)<input id="paste-company" type="text"></label>
+        </div>
+        <textarea id="paste-text" rows="8" placeholder="Paste the job description here…"></textarea>
+        <div class="row"><button class="primary" id="btn-use-paste">Use this text</button></div>
+      </div>
+      <details class="bookmarklet">
+        <summary>Sites that block automatic reading (LinkedIn, Indeed, WTTJ…): use the bookmarklet</summary>
+        <p class="small">Drag this button to your bookmarks bar. Then, on any job page, click it: the page text opens here, ready to use. Nothing is sent anywhere except to this local app.</p>
+        <p><a id="bookmarklet" class="bm" href="#">➜ Send to Copilot</a> <span class="muted small">(drag me to the bookmarks bar; if you select the job description first, only the selection is sent)</span></p>
+      </details>
+    </div>
+
+    <div id="job-preview" class="card" hidden>
+      <h2><span class="step">2</span> What was found <small class="muted" id="job-source"></small></h2>
+      <div class="grid3">
+        <label>Job title<input id="job-title" type="text"></label>
+        <label>Company<input id="job-company" type="text"></label>
+        <label>Posting language
+          <select id="job-lang"><option value="unknown">auto-detect</option><option value="fr">Français</option><option value="en">English</option><option value="de">Deutsch</option></select>
+        </label>
+      </div>
+      <div id="fit-list" class="fit-list"></div>
+      <details>
+        <summary>Job text used for the letter (<span id="job-chars">0</span> characters, editable)</summary>
+        <textarea id="job-desc" rows="12"></textarea>
+      </details>
+    </div>
+
+    <div id="gen-card" class="card" hidden>
+      <h2><span class="step">3</span> The letter</h2>
+      <div class="grid2">
+        <fieldset>
+          <legend>Language</legend>
+          <label class="inline"><input type="radio" name="lang" value="auto" checked> Auto (same as the posting)</label>
+          <label class="inline"><input type="radio" name="lang" value="en"> English</label>
+          <label class="inline"><input type="radio" name="lang" value="fr"> Français</label>
+        </fieldset>
+        <div>
+          <label>Form &amp; general content
+            <select id="bp-select"></select>
+          </label>
+          <div id="bp-summary" class="bp-summary"></div>
+          <button type="button" class="link small" id="bp-edit">Edit this form</button>
+        </div>
+      </div>
+      <div class="grid3">
+        <label>Recipient name (optional)<input id="contact-name" type="text" placeholder="e.g. Claire Dubois"></label>
+        <label>Recipient role (optional)<input id="contact-role" type="text" placeholder="e.g. Engineering Manager"></label>
+        <label>Greeting
+          <select id="greeting"><option value="auto">Hello + full name (safe)</option><option value="ms">Ms. / Madame + last name</option><option value="mr">Mr. / Monsieur + last name</option><option value="first">First name only</option></select>
+        </label>
+      </div>
+      <label>Anything specific you want the letter to say? (optional)
+        <textarea id="note" rows="2" placeholder="e.g. I used their open-source tool X during my project; I met a recruiter at a career fair…  (written in any language; the model adapts it)"></textarea>
+      </label>
+      <div class="grid2">
+        <label>Company website (optional: used to find facts)<input id="company-url" type="url" placeholder="https://…"></label>
+        <label class="inline check"><input type="checkbox" id="with-cv" checked> Also tailor my CV for this job</label>
+      </div>
+      <details>
+        <summary>Advanced</summary>
+        <label>Model <select id="model-select"></select></label>
+      </details>
+      <div class="row"><button class="primary big" id="btn-generate">Generate letter &amp; CV</button><span id="gen-hint" class="muted small"></span></div>
+    </div>
+
+    <div id="progress-card" class="card" hidden></div>
+  </section>
+
+  <!-- ====================================================== SPONTANEOUS -->
+  <section id="tab-spont" class="tab">
+    <div class="card">
+      <h2>Spontaneous application <small class="muted">– a short e-mail to a named person</small></h2>
+      <div class="grid2">
+        <label>Company *<input id="sp-company" type="text" placeholder="e.g. Nimbus Logistics"></label>
+        <label>Company website (optional, recommended)<input id="sp-url" type="url" placeholder="https://…"></label>
+      </div>
+      <div class="grid3">
+        <label>Contact person *<input id="sp-contact" type="text" placeholder="e.g. Claire Dubois"></label>
+        <label>Their role (optional)<input id="sp-role" type="text" placeholder="e.g. Head of Platform"></label>
+        <label>Their e-mail (optional)<input id="sp-email" type="email" placeholder="claire@…"></label>
+      </div>
+      <fieldset>
+        <legend>What you are aiming for</legend>
+        <div id="sp-domains" class="chips"></div>
+        <label>…or say it in your own words (optional)<input id="sp-focus" type="text" placeholder="e.g. DevOps / SRE internship"></label>
+      </fieldset>
+      <label>A personal note (optional, but it makes the e-mail much better)
+        <textarea id="sp-note" rows="2" placeholder="e.g. I read your post about migrating to Kubernetes; we met at DevOpsDays…"></textarea>
+      </label>
+      <div class="grid3">
+        <fieldset>
+          <legend>Language</legend>
+          <label class="inline"><input type="radio" name="sp-lang" value="auto" checked> Auto</label>
+          <label class="inline"><input type="radio" name="sp-lang" value="en"> English</label>
+          <label class="inline"><input type="radio" name="sp-lang" value="fr"> Français</label>
+        </fieldset>
+        <label>Greeting
+          <select id="sp-greeting"><option value="auto">Hello + full name (safe)</option><option value="ms">Ms. / Madame + last name</option><option value="mr">Mr. / Monsieur + last name</option><option value="first">First name only</option></select>
+        </label>
+        <label class="inline check"><input type="checkbox" id="sp-cv" checked> Tailor a CV to attach</label>
+      </div>
+      <label id="sp-bp-wrap" hidden>Form of the e-mail <select id="sp-bp"></select></label>
+      <div class="row"><button class="primary big" id="btn-sp-generate">Write the e-mail</button><span class="muted small" id="sp-hint"></span></div>
+    </div>
+    <div id="sp-progress" class="card" hidden></div>
+  </section>
+
+  <!-- ====================================================== TRACKER -->
+  <section id="tab-tracker" class="tab">
+    <div class="card">
+      <div class="row between">
+        <h2>Applications</h2>
+        <div class="row">
+          <select id="tr-filter"><option value="">All statuses</option></select>
+          <a class="btn" href="/api/applications.csv" download>Export CSV</a>
+        </div>
+      </div>
+      <div id="due-box"></div>
+      <div id="tracker-table"></div>
+    </div>
+  </section>
+
+  <!-- ====================================================== PROFILE & TEMPLATES -->
+  <section id="tab-profile" class="tab">
+    <div class="split">
+      <aside class="card files">
+        <h3>Your files</h3>
+        <div id="file-list"></div>
+        <p class="muted small">Everything lives in <code id="data-dir"></code>. A backup (<code>.bak</code>) is kept when you save.</p>
+      </aside>
+      <div class="card editor">
+        <div class="row between"><h2 id="ed-title">Master profile</h2><span id="ed-state" class="muted small"></span></div>
+        <p id="ed-help" class="muted small"></p>
+        <div id="ed-msgs"></div>
+        <textarea id="ed-text" class="code" spellcheck="false" rows="28"></textarea>
+        <div class="row">
+          <button class="primary" id="ed-save">Save</button>
+          <button id="ed-validate">Check only</button>
+          <button id="ed-reset" class="danger-outline">Reset to default</button>
+          <button id="ed-duplicate" hidden>Duplicate as a new form…</button>
+          <span class="spacer"></span>
+          <span id="ed-cv-tools" hidden>
+            <button id="ed-build-en">Build test CV (EN)</button>
+            <button id="ed-build-fr">Build test CV (FR)</button>
+          </span>
+        </div>
+        <div id="ed-preview" hidden></div>
+        <details class="howto">
+          <summary>How do I use my own LaTeX CV?</summary>
+          <ol class="small">
+            <li>Open the <b>CV template</b> and replace everything <i>before</i> <code>\begin{document}</code> with your own preamble (packages, colours, macros).</li>
+            <li>Replace the static content with the loops already there: <code>\BLOCK{ for p in projects }</code> … <code>\BLOCK{ endfor }</code>, printing values with <code>\VAR{p.name}</code> (auto-escaped for LaTeX).</li>
+            <li>Click <b>Check only</b> (catches typos in variable names) then <b>Build test CV</b> to see the PDF. Your own macros such as <code>\resumeItem</code> work: just call them with <code>\VAR{…}</code> values.</li>
+            <li>Put every fact (projects, bullets, tools) in the <b>Master profile</b>. The tailored CV only <i>selects and reorders</i> what is there: it never invents anything.</li>
+          </ol>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================================================== SETUP -->
+  <section id="tab-setup" class="tab">
+    <div id="setup-body"></div>
+  </section>
+
+  <!-- ====================================================== APPLICATION WORKSPACE -->
+  <section id="tab-app" class="tab">
+    <div id="app-body"></div>
+  </section>
+</main>
+
+<div id="toast" role="status" aria-live="polite"></div>
+<script src="/static/app.js?v=__VERSION__"></script>
+</body>
+</html>

@@ -1,0 +1,123 @@
+\BLOCK{ raw }
+%% =====================================================================================
+%%  CV TEMPLATE  (LaTeX + Jinja).  Edit freely in the app: "Profile & templates" tab.
+%%
+%%  \VAR{ x }          prints x, auto-escaped for LaTeX         \VAR{ x|raw }  prints raw LaTeX
+%%  \BLOCK{ if x } .. \BLOCK{ endif }   /   \BLOCK{ for a in b } .. \BLOCK{ endfor }
+%%
+%%  Variables:  lang, babel, L.<label>   name, headline, contact_line (raw)
+%%              education[]  : school, degree, period, location, details[]
+%%              experience[] : org, role, period, location, bullets[]
+%%              projects[]   : name, tagline, stack, period, link, link_text, bullets[]
+%%              skills[]     : category, items          languages[] : name, level
+%%              certifications[], interests[]
+%%
+%%  To use YOUR OWN LaTeX CV: keep your preamble and macros, and replace the static content
+%%  with the loops below (see README, section "Use your own LaTeX CV").
+%% =====================================================================================
+\BLOCK{ endraw }
+\documentclass[10pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[a4paper,top=1.05cm,bottom=0.95cm,left=1.5cm,right=1.5cm]{geometry}
+\usepackage[\VAR{babel|raw}]{babel}
+\usepackage{microtype}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{xcolor}
+\usepackage[hidelinks]{hyperref}
+
+\definecolor{accent}{HTML}{1F4E79}
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0pt}
+\raggedbottom
+
+\titleformat{\section}{\normalsize\bfseries\scshape\color{accent}}{}{0pt}{}[{\color{accent}\titlerule}]
+\titlespacing*{\section}{0pt}{7pt}{4pt}
+\setlist[itemize]{leftmargin=1.15em,itemsep=1pt,topsep=2pt,parsep=0pt,partopsep=0pt}
+
+% \entry{title}{right of title}{subtitle}{right of subtitle}
+\newcommand{\entry}[4]{\textbf{#1}\hfill #2\\[-1pt]\textit{#3}\hfill\textit{#4}\par\vspace{1pt}}
+
+\begin{document}
+
+\begin{center}
+  {\LARGE\bfseries \VAR{name}}\\[3pt]
+\BLOCK{ if headline }
+  {\small\itshape \VAR{headline}}\\[2pt]
+\BLOCK{ endif }
+  {\small \VAR{contact_line|raw}}
+\end{center}
+
+\BLOCK{ if education }
+\section{\VAR{L.education}}
+\BLOCK{ for e in education }
+\entry{\VAR{e.school}}{\VAR{e.period}}{\VAR{e.degree}}{\VAR{e.location}}
+\BLOCK{ if e.details }
+\begin{itemize}
+\BLOCK{ for d in e.details }
+  \item \VAR{d}
+\BLOCK{ endfor }
+\end{itemize}
+\BLOCK{ endif }
+\BLOCK{ endfor }
+\BLOCK{ endif }
+
+\BLOCK{ if experience }
+\section{\VAR{L.experience}}
+\BLOCK{ for x in experience }
+\entry{\VAR{x.org}}{\VAR{x.period}}{\VAR{x.role}}{\VAR{x.location}}
+\BLOCK{ if x.bullets }
+\begin{itemize}
+\BLOCK{ for b in x.bullets }
+  \item \VAR{b}
+\BLOCK{ endfor }
+\end{itemize}
+\BLOCK{ endif }
+\BLOCK{ endfor }
+\BLOCK{ endif }
+
+\BLOCK{ if projects }
+\section{\VAR{L.projects}}
+\BLOCK{ for p in projects }
+\entry{\VAR{p.name}}{\VAR{p.period}}{\VAR{p.tagline}}{}
+\BLOCK{ if p.stack or p.link }
+{\small\color{accent}\VAR{p.stack}}\BLOCK{ if p.link }\hfill{\small\href{\VAR{p.link|url}}{\VAR{p.link_text}}}\BLOCK{ endif }\par
+\BLOCK{ endif }
+\BLOCK{ if p.bullets }
+\begin{itemize}
+\BLOCK{ for b in p.bullets }
+  \item \VAR{b}
+\BLOCK{ endfor }
+\end{itemize}
+\BLOCK{ endif }
+\BLOCK{ endfor }
+\BLOCK{ endif }
+
+\BLOCK{ if skills }
+\section{\VAR{L.skills}}
+\begin{itemize}[leftmargin=0pt,label={},itemsep=1pt,topsep=1pt]
+\BLOCK{ for g in skills }
+  \item \textbf{\VAR{g.category}:} \VAR{g.items}
+\BLOCK{ endfor }
+\end{itemize}
+\BLOCK{ endif }
+
+\BLOCK{ if languages or certifications or interests }
+\section{\VAR{L.more}}
+\begin{itemize}[leftmargin=0pt,label={},itemsep=1pt,topsep=1pt]
+\BLOCK{ if languages }
+  \item \textbf{\VAR{L.languages}:} \BLOCK{ for l in languages }\VAR{l.name} (\VAR{l.level})\BLOCK{ if not loop.last }, \BLOCK{ endif }\BLOCK{ endfor }
+\BLOCK{ endif }
+\BLOCK{ if certifications }
+  \item \textbf{\VAR{L.certifications}:} \VAR{certifications|join(", ")}
+\BLOCK{ endif }
+\BLOCK{ if interests }
+  \item \textbf{\VAR{L.interests}:} \VAR{interests|join(", ")}
+\BLOCK{ endif }
+\end{itemize}
+\BLOCK{ endif }
+
+\end{document}

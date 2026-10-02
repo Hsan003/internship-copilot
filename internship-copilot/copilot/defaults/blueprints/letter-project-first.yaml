@@ -1,0 +1,76 @@
+# ============================================================================
+#  FORM: PROJECT FIRST - open with your single most relevant project, then explain why this company.
+#  Good for technical roles (DevOps, SRE, backend, AI) where proof of work speaks louder than motivation.
+#  Same format and placeholders as letter.yaml (see the comments there).
+# ============================================================================
+name: Project first (proof of work, then why this company)
+kind: letter
+
+tone:
+  en: "Direct, technical and modest. Lead with what you built. Concrete facts rather than adjectives. First person. No clichés."
+  fr: "Direct, technique et sobre. On commence par ce qu'on a construit. Des faits concrets plutôt que des adjectifs. Première personne, vouvoiement. Pas de formules toutes faites."
+
+avoid:
+  en: ["I am writing to apply", "passionate", "dynamic", "team player", "cutting-edge", "perfect fit", "hard-working", "fast learner"]
+  fr: ["je me permets de", "passionné", "dynamique", "esprit d'équipe", "à la pointe", "candidat idéal", "motivé et rigoureux", "rapidement opérationnel"]
+
+subject:
+  en: "Application – {internship_label}: {role_title} ({start_month_year}, {duration_text})"
+  fr: "Candidature – {internship_label} : {role_title} ({start_month_year}, {duration_text})"
+
+salutations:
+  en:
+    default: "Dear Hiring Team,"
+    named_neutral: "Dear {full_name},"
+    named_ms: "Dear Ms. {last_name},"
+    named_mr: "Dear Mr. {last_name},"
+    first_name: "Dear {first_name},"
+  fr:
+    default: "Madame, Monsieur,"
+    named_neutral: "Bonjour {full_name},"
+    named_ms: "Madame {last_name},"
+    named_mr: "Monsieur {last_name},"
+    first_name: "Bonjour {first_name},"
+
+closing:
+  en: "Kind regards,"
+  fr: "Cordialement,"
+
+signature_lines: ["{name}"]
+
+paragraphs:
+  - id: project
+    kind: generated
+    label: {en: Proof of work, fr: Preuve par l'exemple}
+    max_words: 100
+    goal:
+      en: "Open with the single most relevant project or experience from the CANDIDATE FACTS: what you built, with which tools, and the result. Then say in one sentence which requirement of the job it answers, and name the role you are applying for. Mention only tools that appear in the CANDIDATE FACTS."
+      fr: "Commencez par le projet ou l'expérience le plus pertinent des FAITS SUR LE CANDIDAT : ce que vous avez construit, avec quels outils et quel résultat. Dites ensuite en une phrase à quelle exigence de l'offre cela répond, et nommez le poste visé. Ne citez que des outils présents dans les FAITS SUR LE CANDIDAT."
+    example:
+      en: "Last year I automated the deployment of three services for a team project with a CI pipeline and container images, which cut release time from half a day to twenty minutes. That is the daily work your platform internship describes, and it is why I am applying."
+      fr: "L'an dernier, j'ai automatisé le déploiement de trois services d'un projet d'équipe avec un pipeline CI et des images de conteneurs, ce qui a ramené le temps de livraison d'une demi-journée à vingt minutes. C'est le travail quotidien que décrit votre stage plateforme, et c'est pourquoi je candidate."
+
+  - id: why
+    kind: generated
+    label: {en: Why this company, fr: Pourquoi cette entreprise}
+    max_words: 75
+    goal:
+      en: "Explain why THIS company. Use one concrete COMPANY FACT or the candidate's note and connect it to what you want to learn. If there is neither, talk about the domain of the role and the technologies named in the job. Do not repeat the previous paragraph or describe your own experience again. Never invent news, values or numbers."
+      fr: "Expliquez pourquoi CETTE entreprise. Appuyez-vous sur un FAIT concret sur l'entreprise ou sur la note du candidat et reliez-le à ce que vous voulez apprendre. À défaut, parlez du domaine du poste et des technologies citées dans l'offre. Ne répétez pas le paragraphe précédent et ne redécrivez pas votre expérience. N'inventez ni actualité, ni valeurs, ni chiffres."
+    example:
+      en: "What draws me to your team is how directly reliability work shows up in customers' experience: when a service is faster and easier to observe, they notice. I would like to learn how that is done at scale."
+      fr: "Ce qui m'attire dans votre équipe, c'est que le travail de fiabilité se voit directement dans l'expérience des clients : quand un service est plus rapide et plus facile à observer, ils le remarquent. Je voudrais apprendre comment cela se fait à grande échelle."
+
+  - id: logistics
+    kind: fixed
+    label: {en: Availability, fr: Disponibilité}
+    text:
+      en: "I am available for {internship_label_a} of {duration_text}, starting {start_month_year}, as part of {programme}. {availability_note}"
+      fr: "Je suis disponible pour {internship_label_a} de {duration_text}, à compter de {start_month_year}, dans le cadre de {programme}. {availability_note}"
+
+  - id: close
+    kind: fixed
+    label: {en: Closing line, fr: Phrase de conclusion}
+    text:
+      en: "I would be glad to walk you through the details in an interview and to show what I could bring to {company}. Thank you for your time and consideration."
+      fr: "Je reste à votre disposition pour un entretien, afin de détailler ce travail et ce que je pourrais apporter à {company}. Je vous remercie de l'attention portée à ma candidature."
