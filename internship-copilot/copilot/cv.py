@@ -13,10 +13,10 @@ from .textutil import localized
 LABELS = {
     "en": {"education": "Education", "experience": "Experience", "projects": "Projects", "skills": "Skills",
            "more": "Additional information", "languages": "Languages", "certifications": "Certifications",
-           "interests": "Interests", "subject": "Subject:"},
+           "interests": "Interests", "subject": "Subject:", "keywords": "Other keywords"},
     "fr": {"education": "Formation", "experience": "Expérience", "projects": "Projets", "skills": "Compétences",
            "more": "Informations complémentaires", "languages": "Langues", "certifications": "Certifications",
-           "interests": "Centres d'intérêt", "subject": "Objet :"},
+           "interests": "Centres d'intérêt", "subject": "Objet :", "keywords": "Autres mots-clés"},
 }
 
 
@@ -49,7 +49,12 @@ def build_context(profile: Profile, plan: CVPlan, lang: str) -> dict:
         chosen = [by_id[i] for i in ids if i in by_id] if ids is not None else list(item.bullets)
         return [localized(b.text, lang) for b in chosen]
 
-    skills = plan.skills or [{"category": localized(g.category, lang), "items": g.items} for g in profile.skills]
+    skills = list(plan.skills or [{"category": localized(g.category, lang), "items": g.items} for g in profile.skills])
+    if plan.extra_keywords:
+        listed = {i.lower() for s in skills for i in s["items"]}
+        extra = [k for k in plan.extra_keywords if k.lower() not in listed]
+        if extra:
+            skills.append({"category": LABELS.get(lang, LABELS["en"])["keywords"], "items": extra})
     return {
         "lang": lang,
         "L": LABELS.get(lang, LABELS["en"]),

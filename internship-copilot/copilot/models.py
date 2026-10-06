@@ -258,11 +258,12 @@ class CVPlan(BaseModel):
     scores: Dict[str, float] = Field(default_factory=dict)
     matched: Dict[str, List[str]] = Field(default_factory=dict)
     notes: List[str] = Field(default_factory=list)
+    extra_keywords: List[str] = Field(default_factory=list)  # keywords added to the skills block (tailor CV)
 
 
 class ApplicationState(BaseModel):
     id: str
-    kind: Literal["job", "spontaneous"] = "job"
+    kind: Literal["job", "spontaneous", "cv"] = "job"
     created_at: str = ""
     updated_at: str = ""
     status: str = "drafted"  # drafted | sent | replied | interview | offer | rejected | withdrawn

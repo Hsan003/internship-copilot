@@ -17,6 +17,7 @@
   <nav id="tabs" aria-label="Sections">
     <button data-tab="new" class="active">New application</button>
     <button data-tab="spont">Spontaneous</button>
+    <button data-tab="tailor">Tailor CV</button>
     <button data-tab="tracker">Tracker <span id="due-badge" class="badge" hidden></span></button>
     <button data-tab="profile">Profile &amp; templates</button>
     <button data-tab="setup">Setup</button>
@@ -151,6 +152,29 @@
       <div class="row"><button class="primary big" id="btn-sp-generate">Write the e-mail</button><span class="muted small" id="sp-hint"></span></div>
     </div>
     <div id="sp-progress" class="card" hidden></div>
+  </section>
+
+  <!-- ====================================================== TAILOR CV -->
+  <section id="tab-tailor" class="tab">
+    <div class="card">
+      <h2>Tailor my CV <small class="muted">– match the recruiter's keywords, without inventing anything</small></h2>
+      <p class="muted small">Paste a job description. The app finds the technologies it asks for, adds those your profile really backs to the CV, reorders your projects and bullets, and shows what you are missing. No AI model is needed.</p>
+      <div class="grid3">
+        <label>Job title (optional)<input id="tl-title" type="text"></label>
+        <label>Company (optional)<input id="tl-company" type="text"></label>
+        <fieldset>
+          <legend>CV language</legend>
+          <label class="inline"><input type="radio" name="tl-lang" value="auto" checked> Auto</label>
+          <label class="inline"><input type="radio" name="tl-lang" value="en"> English</label>
+          <label class="inline"><input type="radio" name="tl-lang" value="fr"> Français</label>
+        </fieldset>
+      </div>
+      <textarea id="tl-text" rows="10" placeholder="Paste the job description here…"></textarea>
+      <div class="row"><button class="primary big" id="btn-tl-analyze">Analyze keywords</button>
+        <button type="button" class="link" id="btn-tl-sample">Load a sample posting</button></div>
+      <div id="tl-error" class="notice error" hidden></div>
+    </div>
+    <div id="tl-report" class="card" hidden></div>
   </section>
 
   <!-- ====================================================== TRACKER -->

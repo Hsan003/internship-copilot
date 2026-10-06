@@ -319,6 +319,60 @@ $('#btn-sp-generate').addEventListener('click', async () => {
   finally { btn.disabled = false; }
 });
 
+// ============================================================ TAILOR CV
+const tailorBody = () => ({
+  text: $('#tl-text').value, title: $('#tl-title').value.trim(), company: $('#tl-company').value.trim(),
+  lang: ($('input[name=tl-lang]:checked') || {}).value || 'auto',
+});
+function tailorShow(kind, msg) { const b = $('#tl-error'); b.hidden = !msg; clear(b); if (msg) b.append(h('span', {}, msg)); b.className = 'notice ' + kind; b.hidden = !msg; }
+function renderTailorReport(rep) {
+  const box = clear($('#tl-report')); box.hidden = false;
+  const state = { picked: new Set(rep.default_keywords) };
+  const sync = () => { $('#tl-build').textContent = `Build tailored CV (${state.picked.size} keyword${state.picked.size === 1 ? '' : 's'} added)`; };
+  const chip = (it, kind) => {
+    const on = state.picked.has(it.display);
+    return h('label', { class: 'kw ' + kind, title: kind === 'gap' ? 'Not found in your profile: tick only if you really have this skill' : '' },
+      h('input', { type: 'checkbox', checked: on, onchange: e => { e.target.checked ? state.picked.add(it.display) : state.picked.delete(it.display); sync(); } }),
+      it.display, it.count > 1 ? h('small', { class: 'muted' }, ` ×${it.count}`) : null);
+  };
+  const add = rep.items.filter(i => i.status === 'covered' && !i.in_cv);
+  const there = rep.items.filter(i => i.in_cv);
+  const gaps = rep.items.filter(i => i.status === 'gap');
+  put(box, h('div', { class: 'row' }, h('b', {}, 'Keyword match'), h('span', { class: 'pill warn' }, `${rep.score_before}% now`), '→', h('span', { class: 'pill ok' }, `${rep.score_after}% with the ticked keywords`)));
+  (rep.notes || []).forEach(n => box.append(notice('info', n)));
+  if (!rep.items.length) { box.append(notice('warn', 'No known technology keyword was found in this text. Check that you pasted the job description.')); }
+  if (add.length) put(box, h('h3', {}, 'Add to your CV (backed by your profile)'), h('div', { class: 'kwlist' }, add.map(i => chip(i, 'add'))));
+  if (there.length) put(box, h('h3', {}, 'Already visible on your CV'), h('div', { class: 'kwlist' }, there.map(i => h('span', { class: 'kw there' }, '✓ ' + i.display))));
+  if (gaps.length) put(box, h('h3', {}, 'Asked by the recruiter, but not in your profile'),
+    h('p', { class: 'muted small' }, 'Never added automatically. Tick a keyword only if you genuinely have the skill (then add it to your profile too).'),
+    h('div', { class: 'kwlist' }, gaps.map(i => chip(i, 'gap'))));
+  put(box, h('div', { class: 'row' }, h('button', { class: 'primary big', id: 'tl-build', onclick: tailorBuild(state) }, '')));
+  sync();
+  box._state = state;
+}
+function tailorBuild(state) {
+  return async e => {
+    const btn = e.currentTarget; btn.disabled = true;
+    try {
+      const a = await api('/api/tailor/build', { method: 'POST', body: { ...tailorBody(), keywords: [...state.picked] } });
+      await openApp(a.id);
+    } catch (err) { tailorShow('error', err.message); }
+    finally { btn.disabled = false; }
+  };
+}
+$('#btn-tl-analyze').addEventListener('click', async () => {
+  const btn = $('#btn-tl-analyze'); btn.disabled = true; tailorShow('', '');
+  try {
+    const rep = await api('/api/tailor/analyze', { method: 'POST', body: tailorBody() });
+    renderTailorReport(rep);
+  } catch (err) { clear($('#tl-report')).hidden = true; tailorShow('error', err.message); }
+  finally { btn.disabled = false; }
+});
+$('#btn-tl-sample').addEventListener('click', async () => {
+  const lang = ($('input[name=tl-lang]:checked') || {}).value === 'fr' ? 'fr' : 'en';
+  $('#tl-text').value = (await api('/api/sample/' + lang)).text;
+});
+
 // ============================================================ TRACKER
 async function loadTracker() {
   const data = await api('/api/applications'); const items = data.items;
@@ -336,7 +390,7 @@ async function loadTracker() {
   box.append(h('table', { class: 'tr' },
     h('thead', {}, h('tr', {}, ['Created', 'Type', 'Company', 'Role', 'Contact', 'Status', 'Follow-up', ''].map(x => h('th', {}, x)))),
     h('tbody', {}, rows.map(a => h('tr', {},
-      h('td', {}, fmtDate(a.created_at)), h('td', {}, a.kind === 'job' ? 'Job' : 'Spontaneous'),
+      h('td', {}, fmtDate(a.created_at)), h('td', {}, a.kind === 'job' ? 'Job' : a.kind === 'cv' ? 'CV only' : 'Spontaneous'),
       h('td', {}, h('a', { href: '#', onclick: e => { e.preventDefault(); openApp(a.id); } }, a.company || '(no name)')),
       h('td', {}, a.role), h('td', {}, a.contact),
       h('td', {}, statusSelect(a.status, async v => { await api(`/api/application/${a.id}/status`, { method: 'PUT', body: { status: v } }); toast('Status updated'); loadTracker(); })),
@@ -450,7 +504,7 @@ async function renderSetup() {
 
 // ============================================================ APPLICATION WORKSPACE
 async function openApp(id) {
-  S.app = await api('/api/application/' + id); S.appTab = 'doc';
+  S.app = await api('/api/application/' + id); S.appTab = S.app.kind === 'cv' ? 'cv' : 'doc';
   $$('.tab').forEach(t => t.classList.toggle('active', t.id === 'tab-app')); $$('#tabs button').forEach(b => b.classList.remove('active'));
   renderApp(); window.scrollTo({ top: 0 });
 }
@@ -459,14 +513,14 @@ const dl = (id, f) => `/api/download/${id}/${f}`;
 const hasFile = (a, f) => (a.file_info || []).some(x => x.name === f);
 
 function renderApp() {
-  const a = S.app; const box = clear($('#app-body')); const isJob = a.kind === 'job';
+  const a = S.app; const box = clear($('#app-body')); const isJob = a.kind === 'job'; const isCv = a.kind === 'cv';
   box.append(
     h('div', { class: 'row between' },
-      h('div', { class: 'row' }, h('button', { onclick: () => showTab(isJob ? 'new' : 'spont') }, '← New'), h('button', { onclick: () => showTab('tracker') }, 'Tracker'),
-        h('h2', { style: 'margin:0' }, a.company, h('small', { class: 'muted' }, ` ${isJob ? a.role : 'Spontaneous application'} · ${a.lang.toUpperCase()}`))),
+      h('div', { class: 'row' }, h('button', { onclick: () => showTab(isJob ? 'new' : isCv ? 'tailor' : 'spont') }, '← New'), h('button', { onclick: () => showTab('tracker') }, 'Tracker'),
+        h('h2', { style: 'margin:0' }, a.company, h('small', { class: 'muted' }, ` ${isJob || isCv ? a.role : 'Spontaneous application'} · ${a.lang.toUpperCase()}`))),
       h('div', { class: 'row' }, h('span', { class: 'muted small' }, 'Status'), statusSelect(a.status, async v => { await api(`/api/application/${a.id}/status`, { method: 'PUT', body: { status: v } }); S.app = await api('/api/application/' + a.id); renderApp(); toast('Status updated'); }))),
     ...(a.messages || []).map(m => notice(/SAMPLE|too long|nothing more/i.test(m) ? 'warn' : 'info', m)),
-    h('div', { class: 'ws' }, h('div', {}, docCard(a), cvCard(a), analysisCard(a), trackCard(a)), previewCard(a)));
+    h('div', { class: 'ws' }, h('div', {}, isCv ? null : docCard(a), cvCard(a), analysisCard(a), trackCard(a)), previewCard(a)));
   requestAnimationFrame(() => $$('.para textarea', box).forEach(autosize));
 }
 
@@ -540,6 +594,7 @@ function cvCard(a) {
   });
   state.projects = build('p', items.projects, plan.project_ids); state.experience = build('e', items.experience, plan.experience_ids);
   const headline = h('input', { type: 'text', value: plan.headline });
+  const kwInput = h('input', { type: 'text', value: (plan.extra_keywords || []).join(', '), placeholder: 'e.g. Kubernetes, CI/CD, Terraform' });
   const listBox = h('div', {});
   const draw = () => {
     clear(listBox);
@@ -558,6 +613,7 @@ function cvCard(a) {
   const collect = () => {
     const p = JSON.parse(JSON.stringify(plan));
     p.headline = headline.value;
+    p.extra_keywords = kwInput.value.split(',').map(x => x.trim()).filter(Boolean);
     p.project_ids = state.projects.filter(x => x.on).map(x => x.id);
     p.experience_ids = state.experience.filter(x => x.on).map(x => x.id);
     p.bullet_ids = {};
@@ -567,7 +623,8 @@ function cvCard(a) {
   return h('div', { class: 'card' }, h('h2', {}, 'Tailored CV'),
     h('p', { class: 'muted small' }, 'Only selects and reorders what is in your profile. Untick or reorder, then rebuild.'),
     ...(plan.notes || []).slice(0, 4).map(n => h('div', { class: 'muted small' }, '• ' + n)),
-    h('label', {}, 'Headline', headline), listBox,
+    h('label', {}, 'Headline', headline),
+    h('label', {}, 'Extra keywords (shown under “Other keywords” in Skills; only list what you can really claim)', kwInput), listBox,
     h('div', { class: 'row' }, h('button', { class: 'primary', onclick: async () => { S.app = await api(`/api/application/${a.id}/edits`, { method: 'PUT', body: { cv_plan: collect() } }); S.appTab = 'cv'; renderApp(); toast('CV rebuilt'); } }, 'Rebuild CV'),
       hasFile(a, 'cv.pdf') ? h('a', { class: 'btn', href: dl(a.id, 'cv.pdf') }, 'Download CV (PDF)') : null,
       hasFile(a, 'cv.tex') ? h('a', { class: 'btn', href: dl(a.id, 'cv.tex') }, '.tex') : null,
@@ -582,16 +639,18 @@ function analysisCard(a) {
     h('dt', {}, 'Mission'), h('dd', {}, an.mission || '–'), h('dt', {}, 'Must have'), h('dd', {}, (an.must_have || []).join(' · ') || '–'),
     h('dt', {}, 'Nice to have'), h('dd', {}, (an.nice_to_have || []).join(' · ') || '–'), h('dt', {}, 'Tech detected'), h('dd', {}, (an.stack || []).join(', ') || '–'),
     h('dt', {}, 'Domains'), h('dd', {}, (an.domains || []).join(', ') || '–')));
-  parts.push(h('h3', {}, 'Company facts used (verified in the sources)'));
-  if (a.facts && a.facts.length) a.facts.forEach(f => parts.push(h('div', {}, '• ' + f.fact, h('blockquote', { class: 'q' }, '“' + f.quote + '” – ' + f.source))));
-  else parts.push(h('p', { class: 'muted small' }, 'None found, so the company paragraph stays general. Add a note or a company website and regenerate.'));
+  if (a.kind !== 'cv') {
+    parts.push(h('h3', {}, 'Company facts used (verified in the sources)'));
+    if (a.facts && a.facts.length) a.facts.forEach(f => parts.push(h('div', {}, '• ' + f.fact, h('blockquote', { class: 'q' }, '“' + f.quote + '” – ' + f.source))));
+    else parts.push(h('p', { class: 'muted small' }, 'None found, so the company paragraph stays general. Add a note or a company website and regenerate.'));
+  }
   if (a.evidence && a.evidence.length) {
     parts.push(h('h3', {}, 'Your work the writer was given'));
     a.evidence.forEach(e => parts.push(h('div', { class: 'small' }, h('b', {}, e.title), e.matched.length ? h('span', { class: 'muted' }, '  ← ' + e.matched.slice(0, 5).join(', ')) : null)));
   }
   if (a.job) parts.push(h('details', {}, h('summary', {}, 'Job text'), h('pre', { class: 'mail' }, a.job.description), a.url ? h('p', { class: 'small' }, h('a', { href: a.url, target: '_blank', rel: 'noopener' }, a.url)) : null));
-  parts.push(h('p', { class: 'muted small' }, `Model: ${a.model || '?'} · folder: data/applications/${a.id}`));
-  return h('details', { class: 'card', open: false }, h('summary', {}, h('b', {}, 'Why this letter? Analysis, facts and fit')), ...parts);
+  parts.push(h('p', { class: 'muted small' }, (a.kind === 'cv' ? '' : `Model: ${a.model || '?'} · `) + `folder: data/applications/${a.id}`));
+  return h('details', { class: 'card', open: false }, h('summary', {}, h('b', {}, a.kind === 'cv' ? 'Job text and fit' : 'Why this letter? Analysis, facts and fit')), ...parts);
 }
 
 // ---- tracking card
@@ -606,8 +665,8 @@ function trackCard(a) {
 
 // ---- preview (right column)
 function previewCard(a) {
-  const isJob = a.kind === 'job'; const tabs = [];
-  if (isJob && hasFile(a, 'letter.pdf')) tabs.push(['doc', 'Letter', 'letter.pdf']);
+  const isJob = a.kind !== 'spontaneous'; const tabs = [];
+  if (a.kind === 'job' && hasFile(a, 'letter.pdf')) tabs.push(['doc', 'Letter', 'letter.pdf']);
   if (hasFile(a, 'cv.pdf')) tabs.push(['cv', 'CV', 'cv.pdf']);
   const body = h('div', {});
   const draw = () => {

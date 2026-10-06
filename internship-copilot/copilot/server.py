@@ -299,6 +299,23 @@ def create_app(allow_any_host: Optional[bool] = None) -> FastAPI:
         t = tasks.submit("spontaneous", lambda task: pipeline.run_spontaneous(req, task))
         return {"task_id": t.id}
 
+    # ------------------------------------------------------------------ tailor CV (deterministic, no LLM: synchronous)
+    def _tailor_guard(call):
+        try:
+            return call()
+        except prof.ConfigFileError as exc:
+            raise HTTPException(422, {"message": "Your profile has errors: " + "; ".join(exc.errors[:3]), "where": "profile"})
+        except fetch.FetchError as exc:
+            raise HTTPException(422, {"message": str(exc), "where": "form"})
+
+    @app.post("/api/tailor/analyze")
+    def tailor_analyze(req: pipeline.TailorRequest) -> dict:
+        return _tailor_guard(lambda: pipeline.tailor_analyze(req))
+
+    @app.post("/api/tailor/build")
+    def tailor_build(req: pipeline.TailorRequest) -> dict:
+        return _state_payload(_tailor_guard(lambda: pipeline.tailor_cv(req)))
+
     @app.get("/api/tasks/{task_id}")
     def task_get(task_id: str) -> dict:
         t = tasks.get(task_id)
@@ -338,7 +355,7 @@ def create_app(allow_any_host: Optional[bool] = None) -> FastAPI:
                 "experience": [{"id": x.id, "name": f"{x.org} – {letter.localized(x.role, s.lang)}",
                                 "bullets": [{"id": b.id, "text": letter.localized(b.text, s.lang)} for b in x.bullets]} for x in p.experience],
             }
-            bp = prof.load_blueprint("letter" if s.kind == "job" else "email", s.target.get("blueprint", ""))
+            bp = prof.load_blueprint(pipeline.bp_kind(s), s.target.get("blueprint", ""))
             data["specs"] = {sp.id: {"max_words": sp.max_words, "kind": sp.kind} for sp in bp.paragraphs}
         except Exception:
             data["cv_items"], data["specs"] = {"projects": [], "experience": []}, {}

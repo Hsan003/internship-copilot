@@ -7,7 +7,7 @@ from urllib.parse import urlparse
 
 from pydantic import BaseModel, Field
 
-from . import analyze, config, cv, fit, grounding, letter, retrieve, store, techvocab
+from . import analyze, config, cv, fetch, fit, grounding, letter, retrieve, store, tailor, techvocab
 from . import profile as prof
 from .llm import get_llm
 from .models import ApplicationState, CVPlan, Job
@@ -47,6 +47,14 @@ class SpontaneousRequest(BaseModel):
     with_cv: bool = True
     blueprint: str = ""  # form file in data/blueprints (default: email.yaml)
     extras: Dict[str, str] = Field(default_factory=dict)
+
+
+class TailorRequest(BaseModel):
+    text: str  # the pasted job description
+    title: str = ""
+    company: str = ""
+    lang: str = "auto"  # auto | en | fr
+    keywords: Optional[List[str]] = None  # None = the profile-backed keywords proposed by the analysis
 
 
 class DocEdits(BaseModel):
@@ -113,6 +121,11 @@ def write_input_from_state(state: ApplicationState, profile, bp) -> letter.Write
         evidence=state.evidence, note=state.note, contact_name=state.contact.get("name", ""),
         contact_role=state.contact.get("role", ""), greeting_style=state.contact.get("style", "auto"),
         domains_hint=state.target.get("domains_hint", ""), job_terms=terms)
+
+
+def bp_kind(state: ApplicationState) -> str:
+    """Which blueprint family a state uses (CV-only states have no document, so 'letter' is just a harmless default)."""
+    return "email" if state.kind == "spontaneous" else "letter"
 
 
 def _filebase(profile, state: ApplicationState) -> str:
@@ -289,11 +302,50 @@ def run_spontaneous(req: SpontaneousRequest, task: Task) -> dict:
     return {"application_id": state.id}
 
 
+# --------------------------------------------------------------------------- flow 3: tailor the CV only
+def _tailor_job(req: TailorRequest):
+    job = fetch.job_from_text(req.text[:20000], title=req.title, company=req.company)  # FetchError if too short
+    lang, notes = resolve_language(req.lang, job.language)
+    return job, lang, notes
+
+
+def tailor_analyze(req: TailorRequest) -> dict:
+    """Keyword report for a pasted description (instant, nothing is written)."""
+    profile = prof.load_profile()
+    job, lang, notes = _tailor_job(req)
+    res = tailor.analyze(profile, job.description, job.title, lang, config.load_settings().cv)
+    if profile.example:
+        notes.append("Your profile is still the SAMPLE profile: replace it in “Profile & templates” first.")
+    return {"lang": lang, "notes": notes, "job": job.model_dump(), "items": res["items"],
+            "default_keywords": res["default_keywords"], "gaps": res["gaps"], "domains": res["domains"],
+            "score_before": res["score_before"], "score_after": res["score_after"]}
+
+
+def tailor_cv(req: TailorRequest) -> ApplicationState:
+    """Build a CV tailored to the pasted description and store it as a 'cv' application (shows up in the tracker)."""
+    st = config.load_settings()
+    profile = prof.load_profile()
+    job, lang, notes = _tailor_job(req)
+    res = tailor.analyze(profile, job.description, job.title, lang, st.cv)
+    plan = res["plan"]
+    tailor.apply_keywords(plan, res["default_keywords"] if req.keywords is None else req.keywords)
+    company = one_line(job.company) or "Tailored CV"
+    role = analyze.clean_role_title(job.title) if job.title else "CV"
+    state = ApplicationState(id=store.new_id(company, role), kind="cv", lang=lang, company=company, role=role, job=job,
+                             cv_plan=plan, messages=list(notes))
+    if profile.example:
+        state.messages.append("Your profile is still the SAMPLE profile: replace it in “Profile & templates” before sending anything.")
+    state.fit = fit.check_fit(job, profile)
+    state.messages += _build_outputs(profile, state, with_cv=True, with_letter=False)
+    store.save_state(state)
+    return state
+
+
 # --------------------------------------------------------------------------- regeneration / edits
 def regenerate(app_id: str, paragraph_ids: List[str], extra: str, task: Task, model: str = "") -> dict:
     profile = prof.load_profile()
     state = store.load_state(app_id)
-    bp = prof.load_blueprint("letter" if state.kind == "job" else "email", state.target.get("blueprint", ""))
+    bp = prof.load_blueprint(bp_kind(state), state.target.get("blueprint", ""))
     llm = get_llm(model or None)
     extras = dict(state.target.get("extras", {}))
     gen_ids = {p.id for p in bp.paragraphs if p.kind == "generated"}
@@ -315,7 +367,7 @@ def regenerate(app_id: str, paragraph_ids: List[str], extra: str, task: Task, mo
 def apply_edits(app_id: str, edits: DocEdits, rebuild: bool = True) -> ApplicationState:
     profile = prof.load_profile()
     state = store.load_state(app_id)
-    bp = prof.load_blueprint("letter" if state.kind == "job" else "email", state.target.get("blueprint", ""))
+    bp = prof.load_blueprint(bp_kind(state), state.target.get("blueprint", ""))
     if state.doc:
         for p in state.doc.paragraphs:
             if p.id in edits.paragraphs and edits.paragraphs[p.id].strip() != p.text.strip():
