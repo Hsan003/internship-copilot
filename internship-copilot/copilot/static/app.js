@@ -324,9 +324,10 @@ const tailorBody = () => ({
   text: $('#tl-text').value, title: $('#tl-title').value.trim(), company: $('#tl-company').value.trim(),
   lang: ($('input[name=tl-lang]:checked') || {}).value || 'auto',
 });
+let tailorPlan = null;  // the plan shown in the last report (AI-ranked when the model was used)
 function tailorShow(kind, msg) { const b = $('#tl-error'); b.hidden = !msg; clear(b); if (msg) b.append(h('span', {}, msg)); b.className = 'notice ' + kind; b.hidden = !msg; }
 function renderTailorReport(rep) {
-  const box = clear($('#tl-report')); box.hidden = false;
+  const box = clear($('#tl-report')); box.hidden = false; tailorPlan = rep.plan;
   const state = { picked: new Set(rep.default_keywords) };
   const sync = () => { $('#tl-build').textContent = `Build tailored CV (${state.picked.size} keyword${state.picked.size === 1 ? '' : 's'} added)`; };
   const chip = (it, kind) => {
@@ -338,7 +339,7 @@ function renderTailorReport(rep) {
   const add = rep.items.filter(i => i.status === 'covered' && !i.in_cv);
   const there = rep.items.filter(i => i.in_cv);
   const gaps = rep.items.filter(i => i.status === 'gap');
-  put(box, h('div', { class: 'row' }, h('b', {}, 'Keyword match'), h('span', { class: 'pill warn' }, `${rep.score_before}% now`), '→', h('span', { class: 'pill ok' }, `${rep.score_after}% with the ticked keywords`)));
+  put(box, h('div', { class: 'row' }, h('span', { class: 'tag' }, rep.ai ? 'AI-assisted' : 'built-in vocabulary'), h('b', {}, 'Keyword match'), h('span', { class: 'pill warn' }, `${rep.score_before}% now`), '→', h('span', { class: 'pill ok' }, `${rep.score_after}% with the ticked keywords`)));
   (rep.notes || []).forEach(n => box.append(notice('info', n)));
   if (!rep.items.length) { box.append(notice('warn', 'No known technology keyword was found in this text. Check that you pasted the job description.')); }
   if (add.length) put(box, h('h3', {}, 'Add to your CV (backed by your profile)'), h('div', { class: 'kwlist' }, add.map(i => chip(i, 'add'))));
@@ -354,16 +355,23 @@ function tailorBuild(state) {
   return async e => {
     const btn = e.currentTarget; btn.disabled = true;
     try {
-      const a = await api('/api/tailor/build', { method: 'POST', body: { ...tailorBody(), keywords: [...state.picked] } });
+      const a = await api('/api/tailor/build', { method: 'POST', body: { ...tailorBody(), keywords: [...state.picked], plan: tailorPlan } });
       await openApp(a.id);
     } catch (err) { tailorShow('error', err.message); }
     finally { btn.disabled = false; }
   };
 }
 $('#btn-tl-analyze').addEventListener('click', async () => {
-  const btn = $('#btn-tl-analyze'); btn.disabled = true; tailorShow('', '');
+  const btn = $('#btn-tl-analyze'); btn.disabled = true; tailorShow('', ''); $('#tl-progress').hidden = true;
+  const body = { ...tailorBody(), use_ai: $('#tl-ai').checked };
   try {
-    const rep = await api('/api/tailor/analyze', { method: 'POST', body: tailorBody() });
+    let rep = await api('/api/tailor/analyze', { method: 'POST', body });
+    if (rep.task_id) {
+      const box = $('#tl-progress'); clear($('#tl-report')).hidden = true;
+      const t = await runTask(rep.task_id, box, 'Reading the posting with the model…');
+      if (t.status !== 'done') { taskFailed(box, t); return; }
+      box.hidden = true; rep = t.result;
+    }
     renderTailorReport(rep);
   } catch (err) { clear($('#tl-report')).hidden = true; tailorShow('error', err.message); }
   finally { btn.disabled = false; }

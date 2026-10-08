@@ -158,7 +158,7 @@
   <section id="tab-tailor" class="tab">
     <div class="card">
       <h2>Tailor my CV <small class="muted">– match the recruiter's keywords, without inventing anything</small></h2>
-      <p class="muted small">Paste a job description. The app finds the technologies it asks for, adds those your profile really backs to the CV, reorders your projects and bullets, and shows what you are missing. No AI model is needed.</p>
+      <p class="muted small">Paste a job description. The app finds the keywords it asks for, adds those your profile really backs to the CV, reorders your projects and bullets, and shows what you are missing.</p>
       <div class="grid3">
         <label>Job title (optional)<input id="tl-title" type="text"></label>
         <label>Company (optional)<input id="tl-company" type="text"></label>
@@ -170,10 +170,12 @@
         </fieldset>
       </div>
       <textarea id="tl-text" rows="10" placeholder="Paste the job description here…"></textarea>
+      <label class="inline check"><input type="checkbox" id="tl-ai"> Use the AI model: extract <i>all</i> keywords (methods, soft skills, tools) and rank my projects and bullets <span class="muted small">(slower; needs Ollama. Without it, a built-in vocabulary of ~200 technologies is used)</span></label>
       <div class="row"><button class="primary big" id="btn-tl-analyze">Analyze keywords</button>
         <button type="button" class="link" id="btn-tl-sample">Load a sample posting</button></div>
       <div id="tl-error" class="notice error" hidden></div>
     </div>
+    <div id="tl-progress" class="card" hidden></div>
     <div id="tl-report" class="card" hidden></div>
   </section>
 

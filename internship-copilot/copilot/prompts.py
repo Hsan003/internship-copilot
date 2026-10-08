@@ -30,6 +30,88 @@ ANALYSIS_SCHEMA = {
     "required": ["role_title", "company_name", "mission", "must_have", "nice_to_have", "domains"],
 }
 
+KEYWORDS_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "keywords": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "term": {"type": "string"},
+                    "importance": {"type": "string", "enum": ["must", "nice"]},
+                    "category": {"type": "string", "enum": ["tech", "method", "soft", "language", "other"]},
+                    "quote": {"type": "string"},
+                },
+                "required": ["term", "importance", "category", "quote"],
+            },
+        }
+    },
+    "required": ["keywords"],
+}
+
+RANK_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "items": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {"type": "string"},
+                    "score": {"type": "number"},
+                    "bullets": {"type": "array", "items": {"type": "string"}},
+                },
+                "required": ["id", "score", "bullets"],
+            },
+        }
+    },
+    "required": ["items"],
+}
+
+
+def keywords_prompts(title: str, text: str) -> tuple[str, str]:
+    system = (
+        "You are an ATS / recruiter keyword extractor for internship postings written in French, English or German. "
+        "Reply with a single JSON object only. Only list keywords that really appear in the posting; never invent any."
+    )
+    user = f"""Job title: {title or '(unknown)'}
+
+JOB POSTING:
+\"\"\"
+{text}
+\"\"\"
+
+List EVERY keyword a recruiter or ATS would screen a CV for (up to 40): technologies, tools, frameworks, languages, cloud
+platforms, methods and practices (e.g. CI/CD, agile, TDD), certifications, spoken languages, domains and key soft skills.
+For each keyword return:
+- term: the keyword as written in the posting (max 4 words, original spelling)
+- importance: "must" if the posting requires it, "nice" if it is optional or a plus
+- category: tech | method | soft | language | other
+- quote: a short verbatim excerpt (max 12 words) of the posting that contains the term"""
+    return system, user
+
+
+def rank_prompts(title: str, text: str, items_text: str) -> tuple[str, str]:
+    system = (
+        "You help a student choose which of THEIR OWN projects and experiences to show on a one-page CV for a given job. "
+        "Reply with a single JSON object only. Use only the ids listed below; never invent ids or content."
+    )
+    user = f"""Job title: {title or '(unknown)'}
+
+JOB POSTING:
+\"\"\"
+{text}
+\"\"\"
+
+CANDIDATE ITEMS (id, then its bullets with their ids):
+{items_text}
+
+For EVERY item return: id, score (0-10: how relevant it is for this job) and bullets (the ids of its bullets, most relevant
+to the job first, irrelevant ones last)."""
+    return system, user
+
+
 FACTS_SCHEMA = {
     "type": "object",
     "properties": {

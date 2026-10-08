@@ -58,7 +58,11 @@ Use the **Check only** button before saving: it validates YAML, placeholders and
 
 **Spontaneous**: company, contact person, the domains you aim at (DevOps, SRE, AI/ML...), an optional website and personal note. You get an e-mail (subject + body), a `mailto:` link, an `.eml` draft with the CV attached, and the tailored CV.
 
-**Tailor CV**: paste a job description (no AI model needed, instant). The app detects the technologies the recruiter asks for (EN/FR/DE aliases), shows a keyword match score, and proposes the keywords your profile really backs: they are added to the CV (under *Other keywords* in Skills) while projects and bullets are reordered for the posting. Keywords the recruiter wants but your profile lacks are shown as **gaps**; they are never added unless you tick them. *Build tailored CV* creates a *CV only* entry in the Tracker, opened in the usual workspace (edit keywords, projects, bullets, rebuild, download the PDF or `.tex`).
+**Tailor CV**: paste a job description and press *Analyze keywords*. The app shows a keyword match score and proposes the keywords your profile really backs: they are added to the CV (under *Other keywords* in Skills) while projects and bullets are reordered for the posting. Keywords the recruiter wants but your profile lacks are shown as **gaps**; they are never added unless you tick them. *Build tailored CV* creates a *CV only* entry in the Tracker, opened in the usual workspace (edit keywords, projects, bullets, rebuild, download the PDF or `.tex`).
+
+Two modes, same honesty rules:
+- **Built-in** (default, instant, no model): keywords come from the ~200-technology vocabulary in `techvocab.py`.
+- **Use the AI model** (tick the box; needs Ollama): the model extracts *all* keywords (methods, soft skills, tools missing from the vocabulary) and scores each project / bullet 0–10 for the posting. The model only proposes: a keyword is dropped unless it literally occurs in the posting, it counts as "covered" only if your profile text contains it, and ranking ids must exist in your profile. If the model fails, the built-in mode is used and a note says so.
 
 **Sites that block automatic reading** (LinkedIn, Indeed, Glassdoor and Welcome to the Jungle sometimes refuse automated requests): use the **bookmarklet** (Setup tab: drag *Send to Copilot* to your bookmarks bar, then click it on the job page; if you select the description first, only the selection is sent) or simply **paste the text**. Both always work. The app never tries to evade a site's bot protection.
 
@@ -149,7 +153,7 @@ copilot/
   fit.py         rule-based fit check (FR/EN/DE regexes: duration, start, contract type, languages, expiry)
   techvocab.py   ~200 technologies with FR/DE aliases and ambiguity rules (Go, R, C, React vs "react"...)
   retrieve.py    ranks your projects/experience for a job; builds the CV plan (selection + order only)
-  tailor.py      "Tailor CV": job keywords vs your profile -> keyword report, gaps, CV plan with extra keywords
+  tailor.py      "Tailor CV": job keywords (vocabulary and/or model) vs your profile -> report, gaps, CV plan
   analyze.py     job analysis (schema-constrained JSON) + verified company facts
   prompts.py     all prompt text in one place
   letter.py      blueprint -> paragraphs (LLM or fixed), salutation, subject, LaTeX/e-mail outputs

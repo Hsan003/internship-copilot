@@ -253,6 +253,13 @@ class FakeLLM(BaseLLM):
             return json.dumps(self._analysis(ctx))
         if task == "facts":
             return json.dumps(self._facts(ctx))
+        if task == "tailor_keywords":  # demo: the vocabulary matches, as if the model had found them
+            from . import techvocab
+
+            return json.dumps({"keywords": [{"term": techvocab.display(t), "importance": "nice", "category": "tech", "quote": techvocab.display(t)}
+                                            for t, _ in techvocab.find_terms(ctx.get("text", "")).most_common(30)]})
+        if task == "tailor_rank":  # demo: no opinion -> the deterministic ranking is used
+            return json.dumps({"items": []})
         if task.startswith("paragraph"):
             return self._paragraph(ctx)
         return "{}"

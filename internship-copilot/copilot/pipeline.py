@@ -55,6 +55,9 @@ class TailorRequest(BaseModel):
     company: str = ""
     lang: str = "auto"  # auto | en | fr
     keywords: Optional[List[str]] = None  # None = the profile-backed keywords proposed by the analysis
+    use_ai: bool = False  # extract keywords and rank your work with the local model (analysis only)
+    model: str = ""
+    plan: Optional[CVPlan] = None  # the plan returned by the analysis (AI ranking is not recomputed at build time)
 
 
 class DocEdits(BaseModel):
@@ -309,16 +312,20 @@ def _tailor_job(req: TailorRequest):
     return job, lang, notes
 
 
-def tailor_analyze(req: TailorRequest) -> dict:
-    """Keyword report for a pasted description (instant, nothing is written)."""
+def tailor_analyze(req: TailorRequest, task: Optional[Task] = None) -> dict:
+    """Keyword report for a pasted description. Instant without the model; ``use_ai`` runs as a background task."""
     profile = prof.load_profile()
     job, lang, notes = _tailor_job(req)
-    res = tailor.analyze(profile, job.description, job.title, lang, config.load_settings().cv)
+    llm = get_llm(req.model or None) if req.use_ai else None
+    extra = {"llm": llm, "cancel": task.cancel, "on_progress": task.tokens, "step": task.step} if (llm and task) else {"llm": llm}
+    res = tailor.analyze(profile, job.description, job.title, lang, config.load_settings().cv, **extra)
+    notes = notes + res["ai_notes"]
     if profile.example:
         notes.append("Your profile is still the SAMPLE profile: replace it in “Profile & templates” first.")
     return {"lang": lang, "notes": notes, "job": job.model_dump(), "items": res["items"],
             "default_keywords": res["default_keywords"], "gaps": res["gaps"], "domains": res["domains"],
-            "score_before": res["score_before"], "score_after": res["score_after"]}
+            "score_before": res["score_before"], "score_after": res["score_after"], "ai": res["ai"],
+            "plan": res["plan"].model_dump()}
 
 
 def tailor_cv(req: TailorRequest) -> ApplicationState:
@@ -326,9 +333,14 @@ def tailor_cv(req: TailorRequest) -> ApplicationState:
     st = config.load_settings()
     profile = prof.load_profile()
     job, lang, notes = _tailor_job(req)
-    res = tailor.analyze(profile, job.description, job.title, lang, st.cv)
-    plan = res["plan"]
-    tailor.apply_keywords(plan, res["default_keywords"] if req.keywords is None else req.keywords)
+    if req.plan is not None:  # the plan the user saw (possibly AI-ranked): only ids that exist in the profile survive
+        plan = tailor.sanitize_plan(profile, req.plan.model_copy(deep=True))
+        plan.lang = lang
+        default_kw: List[str] = []
+    else:
+        res = tailor.analyze(profile, job.description, job.title, lang, st.cv)
+        plan, default_kw = res["plan"], res["default_keywords"]
+    tailor.apply_keywords(plan, default_kw if req.keywords is None else req.keywords)
     company = one_line(job.company) or "Tailored CV"
     role = analyze.clean_role_title(job.title) if job.title else "CV"
     state = ApplicationState(id=store.new_id(company, role), kind="cv", lang=lang, company=company, role=role, job=job,

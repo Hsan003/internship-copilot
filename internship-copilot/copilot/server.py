@@ -310,7 +310,13 @@ def create_app(allow_any_host: Optional[bool] = None) -> FastAPI:
 
     @app.post("/api/tailor/analyze")
     def tailor_analyze(req: pipeline.TailorRequest) -> dict:
-        return _tailor_guard(lambda: pipeline.tailor_analyze(req))
+        """Without the model: the report itself. With ``use_ai``: a background task whose result is the report."""
+        if not req.use_ai:
+            return _tailor_guard(lambda: pipeline.tailor_analyze(req))
+        _tailor_guard(lambda: (prof.load_profile(), pipeline._tailor_job(req)))  # fail fast on a bad profile / short text
+        _preflight()
+        t = tasks.submit("tailor", lambda task: pipeline.tailor_analyze(req, task))
+        return {"task_id": t.id}
 
     @app.post("/api/tailor/build")
     def tailor_build(req: pipeline.TailorRequest) -> dict:
